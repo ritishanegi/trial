@@ -3,10 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -50,60 +46,128 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left — brand panel */}
-      <div className="hidden lg:flex lg:w-[480px] bg-primary text-primary-foreground flex-col justify-between p-10">
-        <span className="text-[15px] font-semibold tracking-tight">nautos</span>
-        <div>
-          <p className="text-2xl font-semibold leading-snug">
+    <div className="flex min-h-screen font-sans">
+      {/* ── Left — brand panel ── */}
+      <div className="hidden lg:flex lg:w-[400px] flex-col justify-between p-10 relative overflow-hidden bg-[#0a1628]">
+        {/* Grid overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+        {/* Amber glow */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 60% at 60% 110%, rgba(255,165,0,0.08) 0%, transparent 60%)",
+          }}
+        />
+
+        {/* Logo */}
+        <div className="relative z-10 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full border-2 border-[#f5a623] flex items-center justify-center">
+            <div className="w-2.5 h-2.5 rounded-full border border-[#f5a623]" />
+          </div>
+          <span className="text-white text-[15px] font-semibold tracking-wide">
+            nautos
+          </span>
+        </div>
+
+        {/* Headline */}
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-5">
+            <span className="h-px w-8 bg-[#f5a623]" />
+            <span className="text-[#f5a623] text-[11px] tracking-[0.12em] uppercase">
+              Maritime Intelligence Platform
+            </span>
+            <span className="h-px w-8 bg-[#f5a623]" />
+          </div>
+          <h1 className="text-white text-[26px] font-bold leading-tight">
             Set up your company
             <br />
-            in two minutes.
-          </p>
-          <p className="mt-3 text-sm text-primary-foreground/60 leading-relaxed">
-            Create your workspace, add vessels, and start uploading documents immediately.
+            <em className="text-white/70">in two minutes.</em>
+          </h1>
+          <p className="mt-3 text-sm text-white/50 leading-relaxed">
+            Create your workspace, add vessels, and start uploading documents
+            immediately.
           </p>
         </div>
-        <p className="text-xs text-primary-foreground/40">Martech Systems</p>
+
+        {/* Footer */}
+        <div className="relative z-10">
+          <p className="text-[10px] tracking-widest text-white/20">
+            25°47′N 80°13′W
+          </p>
+          <p className="mt-1.5 text-[11px] tracking-wider text-white/25">
+            Martech Systems
+          </p>
+        </div>
       </div>
 
-      {/* Right — form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-sm">
-          <div className="mb-8">
-            <h1 className="text-xl font-semibold text-foreground">Create account</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Register your company to get started with NAUTOS.
-            </p>
-          </div>
+      {/* ── Right — form ── */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-[#0d1a2e]">
+        <div className="w-full max-w-[420px]">
+          <h2 className="text-[#f0f4ff] text-xl font-semibold">
+            Create account
+          </h2>
+          <p className="mt-1 mb-7 text-sm text-white/40">
+            Register your company to get started with NAUTOS.
+          </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             {error && (
-              <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive">
+              <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-300">
                 {error}
               </div>
             )}
 
+            {/* Name + Email */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" required minLength={2} placeholder="John Smith" />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" required placeholder="you@company.com" />
-              </div>
+              <Field label="Name" id="name">
+                <input
+                  id="name"
+                  name="name"
+                  required
+                  minLength={2}
+                  placeholder="John Smith"
+                />
+              </Field>
+              <Field label="Email" id="email">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="you@company.com"
+                />
+              </Field>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="companyName">Company name</Label>
-              <Input id="companyName" name="companyName" required minLength={2} placeholder="Acme Shipping Ltd" />
-            </div>
+            {/* Company */}
+            <Field label="Company name" id="companyName">
+              <input
+                id="companyName"
+                name="companyName"
+                required
+                minLength={2}
+                placeholder="Acme Shipping Ltd"
+              />
+            </Field>
 
+            {/* Subdomain — standalone, not wrapped in Field */}
             <div className="space-y-1.5">
-              <Label htmlFor="subdomain">Subdomain</Label>
-              <div className="flex">
-                <Input
+              <label
+                htmlFor="subdomain"
+                className="block text-[11px] uppercase tracking-[0.04em] text-white/50"
+              >
+                Subdomain
+              </label>
+              <div className="flex rounded-md border border-white/10 focus-within:border-[#f5a623]/50 overflow-hidden transition-colors">
+                <input
                   id="subdomain"
                   name="subdomain"
                   required
@@ -111,38 +175,103 @@ export default function RegisterPage() {
                   maxLength={63}
                   pattern="[a-z0-9-]+"
                   placeholder="acme-shipping"
-                  className="rounded-r-none border-r-0"
+                  className="flex-1 bg-white/5 px-3 py-2 text-sm text-[#f0f4ff] outline-none placeholder:text-white/20"
                 />
-                <div className="flex items-center px-3 rounded-r-md border border-input bg-muted text-sm text-muted-foreground whitespace-nowrap">
+                <span className="flex items-center px-3 bg-white/[0.04] border-l border-white/[0.08] text-white/40 text-sm whitespace-nowrap select-none">
                   .nautos.ai
-                </div>
+                </span>
               </div>
             </div>
 
+            {/* Password + Confirm */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" name="password" type="password" required minLength={8} placeholder="Min 8 chars" />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="confirmPassword">Confirm</Label>
-                <Input id="confirmPassword" name="confirmPassword" type="password" required minLength={8} placeholder="Repeat" />
-              </div>
+              <Field label="Password" id="password">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  minLength={8}
+                  placeholder="Min 8 chars"
+                />
+              </Field>
+              <Field label="Confirm" id="confirmPassword">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  minLength={8}
+                  placeholder="Repeat"
+                />
+              </Field>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {loading ? "Creating account..." : "Create account"}
-            </Button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-2 py-2.5 rounded-md bg-[#f5a623] hover:bg-[#e8971a] disabled:opacity-60 text-[#0a1628] text-sm font-bold tracking-widest uppercase transition-colors cursor-pointer"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#0a1628] border-t-transparent" />
+                  Creating account…
+                </span>
+              ) : (
+                "Create account"
+              )}
+            </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          <p className="mt-6 text-center text-sm text-white/40">
             Already have an account?{" "}
-            <Link href="/auth/login" className="font-medium text-foreground hover:underline">
+            <Link href="/auth/login" className="text-white/70 hover:underline">
               Log in
             </Link>
           </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Field ── */
+
+function Field({
+  label,
+  id,
+  children,
+}: {
+  label: string;
+  id: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label
+        htmlFor={id}
+        className="block text-[11px] uppercase tracking-[0.04em] text-white/50"
+      >
+        {label}
+      </label>
+      <div
+        className="
+          [&_input]:w-full
+          [&_input]:bg-white/5
+          [&_input]:border
+          [&_input]:border-white/10
+          [&_input]:rounded-md
+          [&_input]:px-3
+          [&_input]:py-2
+          [&_input]:text-sm
+          [&_input]:text-[#f0f4ff]
+          [&_input]:outline-none
+          [&_input]:placeholder:text-white/20
+          [&_input]:transition-colors
+          [&_input:focus]:border-[#f5a623]/50
+        "
+      >
+        {children}
       </div>
     </div>
   );
