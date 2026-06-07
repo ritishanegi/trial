@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react"; // Import visibility icons
 
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Toggle state
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,7 +39,6 @@ export default function LoginPage() {
     <div className="flex min-h-screen font-sans">
       {/* ── Left — brand panel ── */}
       <div className="hidden lg:flex lg:w-[400px] flex-col justify-between p-10 relative overflow-hidden bg-[#0a1628]">
-        {/* Grid overlay */}
         <div
           className="absolute inset-0 opacity-[0.07] pointer-events-none"
           style={{
@@ -46,7 +47,6 @@ export default function LoginPage() {
             backgroundSize: "40px 40px",
           }}
         />
-        {/* Amber glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -55,7 +55,6 @@ export default function LoginPage() {
           }}
         />
 
-        {/* Logo */}
         <div className="relative z-10 flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-full border-2 border-[#f5a623] flex items-center justify-center">
             <div className="w-2.5 h-2.5 rounded-full border border-[#f5a623]" />
@@ -65,7 +64,6 @@ export default function LoginPage() {
           </span>
         </div>
 
-        {/* Headline */}
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-5">
             <span className="h-px w-8 bg-[#f5a623]" />
@@ -84,7 +82,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Footer */}
         <div className="relative z-10">
           <p className="text-[10px] tracking-widest text-white/20">
             25°47′N 80°13′W
@@ -131,21 +128,37 @@ export default function LoginPage() {
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label
-                htmlFor="password"
-                className="block text-[11px] uppercase tracking-[0.04em] text-white/50"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                autoComplete="current-password"
-                placeholder="Password"
-                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-[#f0f4ff] outline-none placeholder:text-white/20 transition-colors focus:border-[#f5a623]/50"
-              />
+              <div className="flex justify-between items-center">
+                <label
+                  htmlFor="password"
+                  className="block text-[11px] uppercase tracking-[0.04em] text-white/50"
+                >
+                  Password
+                </label>
+              </div>
+              <div className="relative group">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  autoComplete="current-password"
+                  placeholder="Password"
+                  className="w-full bg-white/5 border border-white/10 rounded-md pl-3 pr-10 py-2 text-sm text-[#f0f4ff] outline-none placeholder:text-white/20 transition-colors focus:border-[#f5a623]/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/50 transition-colors focus:outline-none"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <button

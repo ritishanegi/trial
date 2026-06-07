@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+// Using Lucide icons for the toggle (standard in many Next.js setups)
+import { Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -49,7 +51,6 @@ export default function RegisterPage() {
     <div className="flex min-h-screen font-sans">
       {/* ── Left — brand panel ── */}
       <div className="hidden lg:flex lg:w-[400px] flex-col justify-between p-10 relative overflow-hidden bg-[#0a1628]">
-        {/* Grid overlay */}
         <div
           className="absolute inset-0 opacity-[0.07] pointer-events-none"
           style={{
@@ -58,7 +59,6 @@ export default function RegisterPage() {
             backgroundSize: "40px 40px",
           }}
         />
-        {/* Amber glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -67,7 +67,6 @@ export default function RegisterPage() {
           }}
         />
 
-        {/* Logo */}
         <div className="relative z-10 flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-full border-2 border-[#f5a623] flex items-center justify-center">
             <div className="w-2.5 h-2.5 rounded-full border border-[#f5a623]" />
@@ -77,7 +76,6 @@ export default function RegisterPage() {
           </span>
         </div>
 
-        {/* Headline */}
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-5">
             <span className="h-px w-8 bg-[#f5a623]" />
@@ -91,13 +89,8 @@ export default function RegisterPage() {
             <br />
             <em className="text-white/70">in two minutes.</em>
           </h1>
-          <p className="mt-3 text-sm text-white/50 leading-relaxed">
-            Create your workspace, add vessels, and start uploading documents
-            immediately.
-          </p>
         </div>
 
-        {/* Footer */}
         <div className="relative z-10">
           <p className="text-[10px] tracking-widest text-white/20">
             25°47′N 80°13′W
@@ -125,7 +118,6 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Name + Email */}
             <div className="grid grid-cols-2 gap-3">
               <Field label="Name" id="name">
                 <input
@@ -147,7 +139,6 @@ export default function RegisterPage() {
               </Field>
             </div>
 
-            {/* Company */}
             <Field label="Company name" id="companyName">
               <input
                 id="companyName"
@@ -158,7 +149,6 @@ export default function RegisterPage() {
               />
             </Field>
 
-            {/* Subdomain — standalone, not wrapped in Field */}
             <div className="space-y-1.5">
               <label
                 htmlFor="subdomain"
@@ -183,25 +173,19 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Password + Confirm */}
+            {/* Password + Confirm using the new PasswordInput component */}
             <div className="grid grid-cols-2 gap-3">
               <Field label="Password" id="password">
-                <input
+                <PasswordInput
                   id="password"
                   name="password"
-                  type="password"
-                  required
-                  minLength={8}
                   placeholder="Min 8 chars"
                 />
               </Field>
               <Field label="Confirm" id="confirmPassword">
-                <input
+                <PasswordInput
                   id="confirmPassword"
                   name="confirmPassword"
-                  type="password"
-                  required
-                  minLength={8}
                   placeholder="Repeat"
                 />
               </Field>
@@ -212,14 +196,7 @@ export default function RegisterPage() {
               disabled={loading}
               className="w-full mt-2 py-2.5 rounded-md bg-[#f5a623] hover:bg-[#e8971a] disabled:opacity-60 text-[#0a1628] text-sm font-bold tracking-widest uppercase transition-colors cursor-pointer"
             >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#0a1628] border-t-transparent" />
-                  Creating account…
-                </span>
-              ) : (
-                "Create account"
-              )}
+              {loading ? "Creating account…" : "Create account"}
             </button>
           </form>
 
@@ -235,7 +212,35 @@ export default function RegisterPage() {
   );
 }
 
-/* ── Field ── */
+/* ── Password Input Sub-component ── */
+
+function PasswordInput({ id, name, placeholder }: { id: string; name: string; placeholder: string }) {
+  const [show, setShow] = useState(false);
+
+  return (
+    <div className="relative flex items-center">
+      <input
+        id={id}
+        name={name}
+        type={show ? "text" : "password"}
+        required
+        minLength={8}
+        placeholder={placeholder}
+        className="pr-10" // Make room for the icon
+      />
+      <button
+        type="button"
+        onClick={() => setShow(!show)}
+        className="absolute right-3 text-white/30 hover:text-white/60 transition-colors focus:outline-none"
+        tabIndex={-1} // Prevent tabbing into the toggle for faster form flow
+      >
+        {show ? <EyeOff size={16} /> : <Eye size={16} />}
+      </button>
+    </div>
+  );
+}
+
+/* ── Field Wrapper ── */
 
 function Field({
   label,
