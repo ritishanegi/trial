@@ -125,7 +125,23 @@ export default function LoginPage() {
                 className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-[#f0f4ff] outline-none placeholder:text-white/20 transition-colors focus:border-[#f5a623]/50"
               />
             </div>
+            {/* ── Right — form ── */}
+<div
+  className="flex-1 flex items-center justify-center px-6 py-12 relative"
+  style={{
+    backgroundImage: "url('/images/ship.jpg')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  }}
+>
+  {/* dark overlay so text stays legible */}
+  <div className="absolute inset-0 bg-[#0d1a2e]/80 backdrop-blur-[2px]" />
 
+  {/* form card — needs relative + z-10 to sit above the overlay */}
+  <div className="relative z-10 w-full max-w-[420px]">
+    {/* ... rest of your form unchanged ... */}
+  </div>
+</div>
             {/* Password */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
