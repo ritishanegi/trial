@@ -31,13 +31,12 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/analytics")
+    fetch("/api/analytics", { credentials: "include" })
       .then((r) => {
         if (!r.ok) throw new Error(`API returned ${r.status} ${r.statusText}`);
         return r.json();
       })
       .then((data) => {
-        // Guard against unexpected shape
         if (!data || typeof data !== "object") {
           throw new Error("Unexpected response shape from /api/analytics");
         }
@@ -65,7 +64,9 @@ export default function AnalyticsPage() {
       <div className="p-6 lg:p-8 max-w-6xl">
         <div className="mb-8">
           <h1 className="text-lg font-semibold text-foreground">Analytics</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Usage and processing metrics</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Usage and processing metrics
+          </p>
         </div>
         <div className="flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           <AlertCircle className="size-4 mt-0.5 shrink-0" />
@@ -84,7 +85,9 @@ export default function AnalyticsPage() {
     <div className="p-6 lg:p-8 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-lg font-semibold text-foreground">Analytics</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Usage and processing metrics</p>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Usage and processing metrics
+        </p>
       </div>
 
       {/* KPIs */}
@@ -123,9 +126,13 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Query volume */}
         <div className="border border-border rounded-lg p-4">
-          <h2 className="text-sm font-semibold text-foreground mb-4">Query volume (30 days)</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-4">
+            Query volume (30 days)
+          </h2>
           {dailyQueries.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No data yet</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">
+              No data yet
+            </p>
           ) : (
             <div className="flex items-end gap-[2px] h-32">
               {dailyQueries.map((day) => (
@@ -145,9 +152,13 @@ export default function AnalyticsPage() {
 
         {/* Document status */}
         <div className="border border-border rounded-lg p-4">
-          <h2 className="text-sm font-semibold text-foreground mb-4">Document status</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-4">
+            Document status
+          </h2>
           {docsByStatus.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No documents yet</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">
+              No documents yet
+            </p>
           ) : (
             <div className="space-y-3">
               {docsByStatus.map((ds) => {
@@ -156,7 +167,9 @@ export default function AnalyticsPage() {
                 return (
                   <div key={ds.status}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-foreground capitalize">{ds.status}</span>
+                      <span className="text-sm text-foreground capitalize">
+                        {ds.status}
+                      </span>
                       <span className="text-xs text-muted-foreground tabular-nums">
                         {ds.count}
                       </span>
