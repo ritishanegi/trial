@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import shipBg from "../../../../public/images/ship.jpg";
-
+import Image from "next/image";
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
@@ -93,21 +92,28 @@ export default function LoginPage() {
         </div>
       </div>
       {/* ── Right — form with ship background ── */}
-      <div
-        className="flex-1 flex items-center justify-center px-6 py-12 relative"
-        style={{
-          backgroundImage: `url(${shipBg.src})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center"
-        }}
-      >
+      <div className="flex-1 flex items-center justify-center px-6 py-12 relative overflow-hidden">
+        
+        {/* Next.js Background Image */}
+        <Image
+          src="/images/ship.jpg"
+          alt="Ship background"
+          fill
+          priority
+          className="object-cover z-0"
+        />
+
         {/* Dark overlay so the form stays legible */}
-        <div className="absolute inset-0 bg-[#0d1a2e]/50 backdrop-blur-[2px]" />
-        <div className="relative z-10 w-full max-w-[420px]">
+        <div className="absolute inset-0 bg-[#0d1a2e]/60 backdrop-blur-[2px] z-10" />
+
+        {/* The z-20 ensures the form sits on top of the image and the overlay */}
+        <div className="relative z-20 w-full max-w-[420px]">
           <h2 className="text-[#f0f4ff] text-xl font-semibold">Log in</h2>
           <p className="mt-1 mb-7 text-sm text-white/40">
             Enter your credentials to access your dashboard.
           </p>
+          
+          {/* ... the rest of your form stays exactly the same ... */}
 
           <form onSubmit={handleSubmit} className="space-y-3.5">
             {error && (
