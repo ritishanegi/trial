@@ -96,7 +96,7 @@ export default function LoginPage() {
       <div
         className="flex-1 flex items-center justify-center px-6 py-12 relative"
         style={{
-          backgroundImage: "url('/images/ship.jpg')",
+          backgroundImage: "url('/images/ship.JPG')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
