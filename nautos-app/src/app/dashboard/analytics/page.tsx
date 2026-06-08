@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { OCR_STATUS_COLOR } from "@/lib/constants";
 
 interface Overview {
@@ -28,23 +28,52 @@ export default function AnalyticsPage() {
   const [dailyQueries, setDailyQueries] = useState<DailyQuery[]>([]);
   const [docsByStatus, setDocsByStatus] = useState<DocStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/analytics")
-      .then((r) => r.json())
-      .then((data) => {
-        setOverview(data.overview);
-        setDailyQueries(data.dailyQueries);
-        setDocsByStatus(data.docsByStatus);
-        setLoading(false);
+      .then((r) => {
+        if (!r.ok) throw new Error(`API returned ${r.status} ${r.statusText}`);
+        return r.json();
       })
-      .catch(() => setLoading(false));
+      .then((data) => {
+        // Guard against unexpected shape
+        if (!data || typeof data !== "object") {
+          throw new Error("Unexpected response shape from /api/analytics");
+        }
+        setOverview(data.overview ?? null);
+        setDailyQueries(data.dailyQueries ?? []);
+        setDocsByStatus(data.docsByStatus ?? []);
+      })
+      .catch((err: Error) => {
+        console.error("[AnalyticsPage]", err);
+        setError(err.message);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <Loader2 className="size-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 lg:p-8 max-w-6xl">
+        <div className="mb-8">
+          <h1 className="text-lg font-semibold text-foreground">Analytics</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Usage and processing metrics</p>
+        </div>
+        <div className="flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <AlertCircle className="size-4 mt-0.5 shrink-0" />
+          <div>
+            <p className="font-medium">Failed to load analytics</p>
+            <p className="mt-0.5 text-red-400/70 font-mono text-xs">{error}</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -67,13 +96,27 @@ export default function AnalyticsPage() {
             { label: "Team", value: overview.totalUsers },
             { label: "Total queries", value: overview.totalQueries },
             { label: "Today", value: overview.queriesToday },
-            { label: "Avg response", value: overview.avgResponseTimeMs > 0 ? `${(overview.avgResponseTimeMs / 1000).toFixed(1)}s` : "—" },
+            {
+              label: "Avg response",
+              value:
+                overview.avgResponseTimeMs > 0
+                  ? `${(overview.avgResponseTimeMs / 1000).toFixed(1)}s`
+                  : "—",
+            },
           ].map((stat) => (
             <div key={stat.label} className="border border-border rounded-lg p-3">
               <p className="text-[11px] text-muted-foreground">{stat.label}</p>
-              <p className="text-xl font-semibold text-foreground mt-0.5 tabular-nums">{stat.value}</p>
+              <p className="text-xl font-semibold text-foreground mt-0.5 tabular-nums">
+                {stat.value}
+              </p>
             </div>
           ))}
+        </div>
+      )}
+
+      {!overview && (
+        <div className="mb-8 rounded-lg border border-border p-4 text-sm text-muted-foreground">
+          No overview data returned from the API.
         </div>
       )}
 
@@ -114,11 +157,15 @@ export default function AnalyticsPage() {
                   <div key={ds.status}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm text-foreground capitalize">{ds.status}</span>
-                      <span className="text-xs text-muted-foreground tabular-nums">{ds.count}</span>
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        {ds.count}
+                      </span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-1.5">
                       <div
-                        className={`h-1.5 rounded-full ${OCR_STATUS_COLOR[ds.status] || "bg-muted-foreground"}`}
+                        className={`h-1.5 rounded-full ${
+                          OCR_STATUS_COLOR[ds.status] || "bg-muted-foreground"
+                        }`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>

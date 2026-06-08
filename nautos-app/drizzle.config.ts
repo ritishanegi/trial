@@ -1,10 +1,9 @@
-import { defineConfig } from "drizzle-kit";
+import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
-  schema: "./src/lib/db/schema.ts",
-  out: "./drizzle",
-  dialect: "postgresql",
+  dialect: 'postgresql',
+  schema: './src/lib/db/schema.ts',
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    url: "postgresql://postgres:password@localhost:5432/nautos",
   },
 });

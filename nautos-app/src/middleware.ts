@@ -50,5 +50,8 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    // ✅ Add |images right after favicon.ico
+    '/((?!api|_next/static|_next/image|favicon.ico|images).*)',
+  ],
 };

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 
-
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
@@ -94,14 +93,16 @@ export default function LoginPage() {
       </div>
 
       {/* ── Right — form with ship background ── */}
+      {/* THIS IS THE MISSING WRAPPER DIV */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 relative overflow-hidden bg-[#0d1a2e]">
-        {/* Standard HTML Image tag - Bypasses Next.js optimization issues entirely */}
+        
+        {/* Local Ship Image */}
         <img
           src="/images/ship.jpg"
           alt="Ship background"
           className="absolute inset-0 w-full h-full object-cover z-0"
         />
-
+        
         {/* Dark overlay so the form stays legible */}
         <div className="absolute inset-0 bg-[#0d1a2e]/60 backdrop-blur-[2px] z-10" />
 
