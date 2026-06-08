@@ -53,8 +53,8 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+      <div className="flex-1 flex items-center justify-center min-h-64">
+        <Loader2 className="size-5 animate-spin text-[#3d5a73]" />
       </div>
     );
   }
@@ -63,10 +63,8 @@ export default function AnalyticsPage() {
     return (
       <div className="p-6 lg:p-8 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-lg font-semibold text-foreground">Analytics</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Usage and processing metrics
-          </p>
+          <h1 className="text-lg font-semibold text-white">Analytics</h1>
+          <p className="text-sm text-[#8ba8bf] mt-0.5">Usage and processing metrics</p>
         </div>
         <div className="flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           <AlertCircle className="size-4 mt-0.5 shrink-0" />
@@ -83,11 +81,14 @@ export default function AnalyticsPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-lg font-semibold text-foreground">Analytics</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Usage and processing metrics
+        <p className="text-[#f5a623] text-[11px] font-semibold tracking-[0.2em] uppercase flex items-center gap-2 mb-3">
+          <span className="inline-block w-5 h-px bg-[#f5a623]" />
+          Maritime Intelligence Platform
         </p>
+        <h1 className="text-2xl font-semibold text-white">Analytics</h1>
+        <p className="text-sm text-[#8ba8bf] mt-1">Usage and processing metrics</p>
       </div>
 
       {/* KPIs */}
@@ -107,9 +108,14 @@ export default function AnalyticsPage() {
                   : "—",
             },
           ].map((stat) => (
-            <div key={stat.label} className="border border-border rounded-lg p-3">
-              <p className="text-[11px] text-muted-foreground">{stat.label}</p>
-              <p className="text-xl font-semibold text-foreground mt-0.5 tabular-nums">
+            <div
+              key={stat.label}
+              className="border border-white/10 rounded-lg p-3 bg-white/[0.03] hover:bg-white/[0.05] transition-colors"
+            >
+              <p className="text-[11px] text-[#3d5a73] uppercase tracking-[0.12em] font-semibold">
+                {stat.label}
+              </p>
+              <p className="text-xl font-semibold text-white mt-1 tabular-nums">
                 {stat.value}
               </p>
             </div>
@@ -118,30 +124,30 @@ export default function AnalyticsPage() {
       )}
 
       {!overview && (
-        <div className="mb-8 rounded-lg border border-border p-4 text-sm text-muted-foreground">
+        <div className="mb-8 rounded-lg border border-white/10 p-4 text-sm text-[#8ba8bf]">
           No overview data returned from the API.
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Query volume */}
-        <div className="border border-border rounded-lg p-4">
-          <h2 className="text-sm font-semibold text-foreground mb-4">
-            Query volume (30 days)
+        <div className="border border-white/10 rounded-lg p-5 bg-white/[0.03]">
+          <h2 className="text-[11px] text-[#3d5a73] uppercase tracking-[0.12em] font-semibold mb-1">
+            Query volume
           </h2>
+          <p className="text-sm text-white font-medium mb-5">Last 30 days</p>
+
           {dailyQueries.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">
-              No data yet
-            </p>
+            <p className="text-sm text-[#3d5a73] py-8 text-center">No data yet</p>
           ) : (
             <div className="flex items-end gap-[2px] h-32">
               {dailyQueries.map((day) => (
                 <div key={day.date} className="flex-1 group relative">
                   <div
-                    className="w-full bg-primary/70 hover:bg-primary rounded-t-sm min-h-[1px] transition-colors"
+                    className="w-full bg-[#f5a623]/40 hover:bg-[#f5a623] rounded-t-sm min-h-[2px] transition-colors"
                     style={{ height: `${(day.count / maxDaily) * 120}px` }}
                   />
-                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 hidden group-hover:block bg-foreground text-background rounded px-1.5 py-0.5 text-[10px] whitespace-nowrap z-10">
+                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#f5a623] text-[#0d1b2a] rounded px-1.5 py-0.5 text-[10px] font-bold whitespace-nowrap z-10">
                     {day.count}
                   </div>
                 </div>
@@ -151,33 +157,31 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Document status */}
-        <div className="border border-border rounded-lg p-4">
-          <h2 className="text-sm font-semibold text-foreground mb-4">
+        <div className="border border-white/10 rounded-lg p-5 bg-white/[0.03]">
+          <h2 className="text-[11px] text-[#3d5a73] uppercase tracking-[0.12em] font-semibold mb-1">
             Document status
           </h2>
+          <p className="text-sm text-white font-medium mb-5">By processing state</p>
+
           {docsByStatus.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">
-              No documents yet
-            </p>
+            <p className="text-sm text-[#3d5a73] py-8 text-center">No documents yet</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {docsByStatus.map((ds) => {
                 const total = docsByStatus.reduce((s, d) => s + d.count, 0);
                 const pct = total > 0 ? (ds.count / total) * 100 : 0;
                 return (
                   <div key={ds.status}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-foreground capitalize">
-                        {ds.status}
-                      </span>
-                      <span className="text-xs text-muted-foreground tabular-nums">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm text-[#8ba8bf] capitalize">{ds.status}</span>
+                      <span className="text-xs text-[#3d5a73] tabular-nums font-mono">
                         {ds.count}
                       </span>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-1.5">
+                    <div className="w-full bg-white/[0.06] rounded-full h-1">
                       <div
-                        className={`h-1.5 rounded-full ${
-                          OCR_STATUS_COLOR[ds.status] || "bg-muted-foreground"
+                        className={`h-1 rounded-full ${
+                          OCR_STATUS_COLOR[ds.status] || "bg-[#f5a623]/50"
                         }`}
                         style={{ width: `${pct}%` }}
                       />
