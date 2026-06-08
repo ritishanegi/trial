@@ -96,8 +96,7 @@ export default function LoginPage() {
       <div
         className="flex-1 flex items-center justify-center px-6 py-12 relative"
         style={{
-          // Change this line to use the imported image:
-          backgroundImage: `url(${shipBg.src})`,
+          backgroundImage: "url('/images/ship.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
