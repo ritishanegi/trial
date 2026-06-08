@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -94,16 +95,17 @@ export default function LoginPage() {
 
       {/* ── Right — form with ship background ── */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 relative overflow-hidden bg-[#0d1a2e]">
+        {/* Standard HTML Image tag - Bypasses Next.js optimization issues entirely */}
         <img
           src="/images/ship.jpg"
-          alt=""
+          alt="Ship background"
           className="absolute inset-0 w-full h-full object-cover z-0"
         />
 
-        {/* Dark overlay */}
+        {/* Dark overlay so the form stays legible */}
         <div className="absolute inset-0 bg-[#0d1a2e]/60 backdrop-blur-[2px] z-10" />
 
-        {/* Form */}
+        {/* Form container sits on top */}
         <div className="relative z-20 w-full max-w-[420px]">
           <h2 className="text-[#f0f4ff] text-xl font-semibold">Log in</h2>
           <p className="mt-1 mb-7 text-sm text-white/40">
@@ -117,6 +119,7 @@ export default function LoginPage() {
               </div>
             )}
 
+            {/* Email */}
             <div className="space-y-1.5">
               <label
                 htmlFor="email"
@@ -135,14 +138,17 @@ export default function LoginPage() {
               />
             </div>
 
+            {/* Password */}
             <div className="space-y-1.5">
-              <label
-                htmlFor="password"
-                className="block text-[11px] uppercase tracking-[0.04em] text-white/50"
-              >
-                Password
-              </label>
-              <div className="relative">
+              <div className="flex justify-between items-center">
+                <label
+                  htmlFor="password"
+                  className="block text-[11px] uppercase tracking-[0.04em] text-white/50"
+                >
+                  Password
+                </label>
+              </div>
+              <div className="relative group">
                 <input
                   id="password"
                   name="password"
@@ -185,12 +191,15 @@ export default function LoginPage() {
 
           <p className="mt-6 text-center text-sm text-white/40">
             No account?{" "}
-            <Link href="/auth/register" className="text-white/70 hover:underline">
+            <Link
+              href="/auth/register"
+              className="text-white/70 hover:underline"
+            >
               Register your company
             </Link>
           </p>
         </div>
       </div>
-    </div>  {/* ← this closing tag was missing */}
+    </div>
   );
 }
