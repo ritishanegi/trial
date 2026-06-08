@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import shipBg from "C:/Users/Sonu/github/trial/nautos-app/public/images/ship.jpg"
+import shipBg from "../../../../public/images/ship.jpg";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -96,9 +96,9 @@ export default function LoginPage() {
       <div
         className="flex-1 flex items-center justify-center px-6 py-12 relative"
         style={{
-          backgroundImage: "url('/images/ship.JPG')",
+          backgroundImage: `url(${shipBg.src})`,
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundPosition: "center"
         }}
       >
         {/* Dark overlay so the form stays legible */}
