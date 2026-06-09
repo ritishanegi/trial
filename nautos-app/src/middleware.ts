@@ -33,7 +33,8 @@ export async function middleware(req: NextRequest) {
   }
 
   try {
-    const { payload } = await jwtVerify(token, getJwtSecret());
+    const secret = new TextEncoder().encode(getJwtSecret());
+    const { payload } = await jwtVerify(token, secret);
 
     const headers = new Headers(req.headers);
     headers.set("x-user-id", payload.userId as string);
@@ -52,6 +53,6 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     // ✅ Add |images right after favicon.ico
-    '/((?!api|_next/static|_next/image|favicon.ico|images).*)',
+    '/((?!_next/static|_next/image|favicon.ico|images).*)',
   ],
 };
