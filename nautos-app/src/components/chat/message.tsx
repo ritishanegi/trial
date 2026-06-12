@@ -4,7 +4,6 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Check, Copy } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from "./code-block";
 import { MarkdownTable } from "./markdown-table";
 
@@ -20,14 +19,10 @@ interface MessageProps {
   content: string;
   sources?: Source[];
   streaming?: boolean;
+  imageUrl?: string | null;
 }
 
-/**
- * Renders a single chat message. Assistant messages get full markdown
- * support (tables, code blocks, lists) plus a copy-to-clipboard button.
- * User messages stay simple — just the text in a bubble.
- */
-export function Message({ role, content, sources, streaming }: MessageProps) {
+export function Message({ role, content, sources, streaming, imageUrl }: MessageProps) {
   const [copied, setCopied] = useState(false);
 
   function handleCopyMessage() {
@@ -39,8 +34,11 @@ export function Message({ role, content, sources, streaming }: MessageProps) {
   if (role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] rounded-lg bg-primary text-primary-foreground px-3.5 py-2.5 text-sm whitespace-pre-wrap">
-          {content}
+        <div className="max-w-[80%] rounded-lg bg-[#f5a623] text-[#0a1628] px-3.5 py-2.5 text-sm font-medium whitespace-pre-wrap flex flex-col gap-2">
+          {imageUrl && (
+            <img src={imageUrl} alt="User upload" className="rounded-md max-h-64 object-contain self-end border border-black/10" />
+          )}
+          {content && <span>{content}</span>}
         </div>
       </div>
     );
@@ -49,11 +47,11 @@ export function Message({ role, content, sources, streaming }: MessageProps) {
   // Assistant message
   return (
     <div className="group max-w-[90%] relative">
-      {/* Copy button — visible on hover */}
+      {/* Copy button */}
       {content && !streaming && (
         <button
           onClick={handleCopyMessage}
-          className="absolute -right-1 top-0 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+          className="absolute -right-1 top-0 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-white/[0.07] text-white/30 hover:text-white/60"
           aria-label="Copy message"
           title="Copy message"
         >
@@ -61,7 +59,23 @@ export function Message({ role, content, sources, streaming }: MessageProps) {
         </button>
       )}
 
-      <div className="text-sm leading-relaxed text-foreground prose prose-sm max-w-none prose-headings:font-semibold prose-headings:text-foreground prose-p:my-2 prose-li:my-0.5 prose-strong:text-foreground prose-code:text-foreground prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[12.5px] prose-code:before:content-none prose-code:after:content-none">
+      <div
+        className="
+          text-sm leading-relaxed text-[#c8deff] prose prose-invert prose-sm max-w-none
+          prose-headings:font-semibold prose-headings:text-[#e8f0ff]
+          prose-p:my-2 prose-p:text-[#c8deff]
+          prose-li:my-0.5 prose-li:text-[#c8deff]
+          prose-strong:text-[#e8f0ff] prose-strong:font-semibold
+          prose-em:text-[#a8c4f0]
+          prose-code:text-[#7dd3fc] prose-code:bg-white/[0.07]
+          prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+          prose-code:text-[12.5px] prose-code:before:content-none prose-code:after:content-none
+          prose-a:text-[#f5a623] prose-a:no-underline hover:prose-a:underline
+          prose-blockquote:border-l-[#f5a623]/40 prose-blockquote:text-white/50
+          prose-hr:border-white/[0.08]
+          prose-ol:text-[#c8deff] prose-ul:text-[#c8deff]
+        "
+      >
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
@@ -86,21 +100,32 @@ export function Message({ role, content, sources, streaming }: MessageProps) {
             table({ children }) {
               return <MarkdownTable>{children}</MarkdownTable>;
             },
-            // Disable default table wrappers since MarkdownTable provides its own
             thead({ children }) {
-              return <thead className="bg-muted/30">{children}</thead>;
+              return <thead className="bg-white/[0.05]">{children}</thead>;
             },
             tbody({ children }) {
               return <tbody>{children}</tbody>;
             },
             tr({ children }) {
-              return <tr className="border-b border-border last:border-0">{children}</tr>;
+              return (
+                <tr className="border-b border-white/[0.07] last:border-0">
+                  {children}
+                </tr>
+              );
             },
             th({ children }) {
-              return <th className="text-left font-medium px-3 py-2 text-xs">{children}</th>;
+              return (
+                <th className="text-left font-medium px-3 py-2 text-xs text-[#e8f0ff]">
+                  {children}
+                </th>
+              );
             },
             td({ children }) {
-              return <td className="px-3 py-2 text-xs align-top">{children}</td>;
+              return (
+                <td className="px-3 py-2 text-xs align-top text-[#c8deff]">
+                  {children}
+                </td>
+              );
             },
           }}
         >
@@ -112,10 +137,13 @@ export function Message({ role, content, sources, streaming }: MessageProps) {
       {sources && sources.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {sources.map((src, si) => (
-            <Badge key={si} variant="secondary" className="text-[11px] font-normal">
+            <span
+              key={si}
+              className="inline-flex items-center gap-1 text-[11px] font-normal px-2.5 py-1 rounded-full border border-white/[0.1] bg-white/[0.04] text-white/50 tracking-wide"
+            >
               {src.title}
               {src.page_number ? `, p.${src.page_number}` : ""}
-            </Badge>
+            </span>
           ))}
         </div>
       )}

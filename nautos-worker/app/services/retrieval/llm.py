@@ -23,8 +23,8 @@ SYSTEM_PROMPT = """You are NAUTOS AI, a maritime technical expert assistant. You
 
 CRITICAL RULES — these are non-negotiable:
 
-1. ONLY use information from the provided <context>. Never infer, synthesize beyond the text, or fill in gaps from general knowledge.
-2. If the answer is not in the context, respond exactly: "Not found in the provided documentation." Do not guess.
+1. ONLY use information from the provided <context> and any provided images. Never infer, synthesize beyond the text/image, or fill in gaps from general knowledge.
+2. If the answer is not in the context or the provided images, respond exactly: "Not found in the provided documentation." Do not guess.
 3. Quote part numbers, ident numbers, codes, torque values, intervals, and specifications EXACTLY as written — character-for-character.
 4. For tables: output ALL rows present in the context. Never abbreviate with "...", "and so on", or "(continues)". If a table has 57 rows in the context, your output has 57 rows.
 5. Cite every factual claim using [Source: document title, page X] format. If you cannot cite it, you cannot say it.
@@ -49,8 +49,15 @@ class LLMTemporaryError(Exception):
     """Rate limit (429) or server error (5xx) — safe to retry with another provider."""
 
 
-def _build_user_message(question: str, context: str) -> str:
-    return f"""Based on the following documentation context, answer the question.
+def _build_user_message(question: str, context: str, has_image: bool = False) -> str:
+    """Construct the user message for the LLM.
+    If an image is provided but the question is empty, generate a default prompt that asks the model to describe the most significant and relevant knowledge about the image.
+    """
+    img_text = " and the provided image" if has_image else ""
+    # If question is empty and an image is present, use a default instruction.
+    if has_image and not question.strip():
+        question = "Provide the most significant and relevant information you can infer from the provided image."
+    return f"""Based on the following documentation context{img_text}, answer the question.
 
 <context>
 {context}
@@ -76,17 +83,27 @@ class GroqLLM:
         # Llama 3.3 70B: solid quality, very fast on Groq's LPU hardware
         self.model = "llama-3.3-70b-versatile"
 
-    def _build_messages(self, question: str, context: str, chat_history: list[dict] | None):
+    def _build_messages(self, question: str, context: str, chat_history: list[dict] | None, image: str | None = None):
         messages = [{"role": "system", "content": SYSTEM_PROMPT}]
         messages.extend(_truncate_history(chat_history))
-        messages.append({"role": "user", "content": _build_user_message(question, context)})
+        if image:
+            messages.append({
+                "role": "user", 
+                "content": [
+                    {"type": "text", "text": _build_user_message(question, context, has_image=True)},
+                    {"type": "image_url", "image_url": {"url": image}}
+                ]
+            })
+        else:
+            messages.append({"role": "user", "content": _build_user_message(question, context)})
         return messages
 
-    def stream_answer(self, question: str, context: str, chat_history: list[dict] | None = None):
+    def stream_answer(self, question: str, context: str, chat_history: list[dict] | None = None, image: str | None = None):
         try:
+            model = "llama-3.2-90b-vision-preview" if image else self.model
             stream = self.client.chat.completions.create(
-                model=self.model,
-                messages=self._build_messages(question, context, chat_history),
+                model=model,
+                messages=self._build_messages(question, context, chat_history, image),
                 max_tokens=4000,
                 temperature=0.1,
                 stream=True,
@@ -98,11 +115,12 @@ class GroqLLM:
         except Exception as exc:
             _raise_if_temporary(exc, "groq")
 
-    def get_answer(self, question: str, context: str, chat_history: list[dict] | None = None) -> str:
+    def get_answer(self, question: str, context: str, chat_history: list[dict] | None = None, image: str | None = None) -> str:
         try:
+            model = "llama-3.2-90b-vision-preview" if image else self.model
             response = self.client.chat.completions.create(
-                model=self.model,
-                messages=self._build_messages(question, context, chat_history),
+                model=model,
+                messages=self._build_messages(question, context, chat_history, image),
                 max_tokens=4000,
                 temperature=0.1,
             )
@@ -117,29 +135,43 @@ class GeminiLLM:
 
     def __init__(self):
         from google import genai
-
         self.client = genai.Client(api_key=settings.gemini_api_key)
         # gemini-1.5-flash has the most reliable free-tier quota allocation
         # Free tier: 15 RPM, 1M TPM, 1,500 RPD
-        self.model = "gemini-1.5-flash"
+        self.model = "gemini-3.5-flash"  # Using Gemini 3.5 Flash model as requested
 
-    def _build_contents(self, question: str, context: str, chat_history: list[dict] | None):
-        # Gemini uses "contents" with role 'user' / 'model' (not 'assistant')
+    def _build_contents(self, question: str, context: str, chat_history: list[dict] | None, image: str | None = None):
+        # Gemini uses "contents" with role 'model' / 'user'
         contents = []
         for msg in _truncate_history(chat_history):
             role = "model" if msg["role"] == "assistant" else "user"
             contents.append({"role": role, "parts": [{"text": msg["content"]}]})
+            
+        user_parts = [{"text": _build_user_message(question, context, has_image=bool(image))}]
+        if image:
+            try:
+                header, base64_data = image.split(",", 1)
+                mime_type = header.split(":")[1].split(";")[0]
+                user_parts.append({
+                    "inline_data": {
+                        "mime_type": mime_type,
+                        "data": base64_data
+                    }
+                })
+            except Exception as e:
+                logger.warning(f"Failed to parse image for Gemini: {e}")
+                
         contents.append({
             "role": "user",
-            "parts": [{"text": _build_user_message(question, context)}],
+            "parts": user_parts,
         })
         return contents
 
-    def stream_answer(self, question: str, context: str, chat_history: list[dict] | None = None):
+    def stream_answer(self, question: str, context: str, chat_history: list[dict] | None = None, image: str | None = None):
         try:
             response = self.client.models.generate_content_stream(
                 model=self.model,
-                contents=self._build_contents(question, context, chat_history),
+                contents=self._build_contents(question, context, chat_history, image),
                 config={
                     "system_instruction": SYSTEM_PROMPT,
                     "max_output_tokens": 4000,
@@ -152,11 +184,11 @@ class GeminiLLM:
         except Exception as exc:
             _raise_if_temporary(exc, "gemini")
 
-    def get_answer(self, question: str, context: str, chat_history: list[dict] | None = None) -> str:
+    def get_answer(self, question: str, context: str, chat_history: list[dict] | None = None, image: str | None = None) -> str:
         try:
             response = self.client.models.generate_content(
                 model=self.model,
-                contents=self._build_contents(question, context, chat_history),
+                contents=self._build_contents(question, context, chat_history, image),
                 config={
                     "system_instruction": SYSTEM_PROMPT,
                     "max_output_tokens": 4000,
@@ -178,32 +210,49 @@ class AnthropicLLM:
         self.client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
         self.model = "claude-sonnet-4-6-20250514"
 
-    def _build_messages(self, question: str, context: str, chat_history: list[dict] | None):
+    def _build_messages(self, question: str, context: str, chat_history: list[dict] | None, image: str | None = None):
         # Anthropic accepts the standard role/content shape directly
         messages = list(_truncate_history(chat_history))
-        messages.append({"role": "user", "content": _build_user_message(question, context)})
+        content_parts = [{"type": "text", "text": _build_user_message(question, context, has_image=bool(image))}]
+        
+        if image:
+            try:
+                header, base64_data = image.split(",", 1)
+                mime_type = header.split(":")[1].split(";")[0]
+                content_parts.append({
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": mime_type,
+                        "data": base64_data,
+                    }
+                })
+            except Exception as e:
+                logger.warning(f"Failed to parse image for Anthropic: {e}")
+                
+        messages.append({"role": "user", "content": content_parts})
         return messages
 
-    def stream_answer(self, question: str, context: str, chat_history: list[dict] | None = None):
+    def stream_answer(self, question: str, context: str, chat_history: list[dict] | None = None, image: str | None = None):
         try:
             with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4000,
                 system=SYSTEM_PROMPT,
-                messages=self._build_messages(question, context, chat_history),
+                messages=self._build_messages(question, context, chat_history, image),
             ) as stream:
                 for text in stream.text_stream:
                     yield text
         except Exception as exc:
             _raise_if_temporary(exc, "anthropic")
 
-    def get_answer(self, question: str, context: str, chat_history: list[dict] | None = None) -> str:
+    def get_answer(self, question: str, context: str, chat_history: list[dict] | None = None, image: str | None = None) -> str:
         try:
             response = self.client.messages.create(
                 model=self.model,
                 max_tokens=4000,
                 system=SYSTEM_PROMPT,
-                messages=self._build_messages(question, context, chat_history),
+                messages=self._build_messages(question, context, chat_history, image),
             )
             return response.content[0].text
         except Exception as exc:
@@ -309,13 +358,13 @@ class LLMService:
             f"fallbacks: {[p.__class__.__name__ for p in self._providers[1:]]}"
         )
 
-    def stream_answer(self, question: str, context: str, chat_history: list[dict] | None = None):
+    def stream_answer(self, question: str, context: str, chat_history: list[dict] | None = None, image: str | None = None):
         last_err: Exception | None = None
 
         for provider in self._providers:
             name = provider.__class__.__name__
             try:
-                gen = provider.stream_answer(question, context, chat_history=chat_history)
+                gen = provider.stream_answer(question, context, chat_history=chat_history, image=image)
 
                 # Pull first token before yielding to the caller. This surfaces
                 # 429/5xx before any output is sent, keeping fallback clean.
@@ -336,13 +385,13 @@ class LLMService:
             f"All LLM providers exhausted. Last error: {last_err}"
         )
 
-    def get_answer(self, question: str, context: str, chat_history: list[dict] | None = None) -> str:
+    def get_answer(self, question: str, context: str, chat_history: list[dict] | None = None, image: str | None = None) -> str:
         last_err: Exception | None = None
 
         for provider in self._providers:
             name = provider.__class__.__name__
             try:
-                return provider.get_answer(question, context, chat_history=chat_history)
+                return provider.get_answer(question, context, chat_history=chat_history, image=image)
             except LLMTemporaryError as exc:
                 logger.warning(f"{name} rate-limited/errored, trying fallback: {exc}")
                 last_err = exc

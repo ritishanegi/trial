@@ -52,6 +52,7 @@ class RAGService:
         document_id: str | None = None,
         chat_history: list[dict] | None = None,
         tenant_name: str = "",
+        image: str | None = None,
     ) -> dict:
         """
         Non-streaming version of stream_query. Same modes:
@@ -71,7 +72,7 @@ class RAGService:
                     "response_time_ms": int((time.time() - start_time) * 1000),
                 }
             context = self._build_context(all_chunks, scoped=True)
-            answer = self.llm.get_answer(question, context, chat_history=chat_history)
+            answer = self.llm.get_answer(question, context, chat_history=chat_history, image=image)
             return {
                 "answer": answer,
                 "sources": self._collect_sources(all_chunks),
@@ -118,7 +119,7 @@ class RAGService:
                 chunk["text"] = self.privacy.strip_master_metadata(chunk["text"], tenant_name)
 
         context = self._build_context(top_chunks)
-        answer = self.llm.get_answer(question, context, chat_history=chat_history)
+        answer = self.llm.get_answer(question, context, chat_history=chat_history, image=image)
 
         return {
             "answer": answer,
@@ -134,6 +135,7 @@ class RAGService:
         document_id: str | None = None,
         chat_history: list[dict] | None = None,
         tenant_name: str = "",
+        image: str | None = None,
     ):
         """
         Execute RAG pipeline and yield streaming tokens.
@@ -160,7 +162,7 @@ class RAGService:
             context = self._build_context(all_chunks, scoped=True)
             sources = self._collect_sources(all_chunks)
 
-            for text_chunk in self.llm.stream_answer(question, context, chat_history=chat_history):
+            for text_chunk in self.llm.stream_answer(question, context, chat_history=chat_history, image=image):
                 yield {"type": "text", "content": text_chunk}
 
             yield {"type": "sources", "content": sources}
@@ -208,7 +210,7 @@ class RAGService:
         context = self._build_context(top_chunks)
         sources = self._collect_sources(top_chunks)
 
-        for text_chunk in self.llm.stream_answer(question, context, chat_history=chat_history):
+        for text_chunk in self.llm.stream_answer(question, context, chat_history=chat_history, image=image):
             yield {"type": "text", "content": text_chunk}
 
         yield {"type": "sources", "content": sources}

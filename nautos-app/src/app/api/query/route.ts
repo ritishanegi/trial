@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   if (ctx instanceof NextResponse) return ctx;
 
   const body = await req.json();
-  const { question, vesselId, documentId, sessionId } = body;
+  const { question, vesselId, documentId, sessionId, image } = body;
 
   if (!question) {
     return new Response(JSON.stringify({ error: "Question is required" }), { status: 400 });
@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
       documentId: effectiveDocumentId,
       userId: ctx.userId,
       chatHistory,
+      image,
       signal: controller.signal,
     });
   } catch (err) {

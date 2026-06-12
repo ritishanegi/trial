@@ -49,6 +49,7 @@ export async function streamQuery(params: {
   documentId?: string | null;
   userId: string | null;
   chatHistory?: ChatHistoryMessage[];
+  image?: string | null;
   signal?: AbortSignal;
 }): Promise<Response> {
   return fetch(`${WORKER_URL}/api/query/stream`, {
@@ -61,6 +62,7 @@ export async function streamQuery(params: {
       document_id: params.documentId ?? null,
       user_id: params.userId,
       chat_history: params.chatHistory ?? null,
+      image: params.image ?? null,
     }),
     signal: params.signal,
   });

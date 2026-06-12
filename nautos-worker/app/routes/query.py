@@ -19,6 +19,7 @@ class QueryRequest(BaseModel):
     user_id: str | None = None
     # Prior turns in the conversation. Each item: {"role": "user"|"assistant", "content": str}
     chat_history: list[dict] | None = None
+    image: str | None = None
 
 
 def _json_default(obj):
@@ -60,6 +61,7 @@ async def stream_query(req: QueryRequest):
                 vessel_id=req.vessel_id,
                 document_id=req.document_id,
                 chat_history=req.chat_history,
+                image=req.image,
             ):
                 yield f"data: {json.dumps(event, default=_json_default)}\n\n"
         except Exception as e:
@@ -88,5 +90,6 @@ async def query(req: QueryRequest):
         vessel_id=req.vessel_id,
         document_id=req.document_id,
         chat_history=req.chat_history,
+        image=req.image,
     )
     return result
