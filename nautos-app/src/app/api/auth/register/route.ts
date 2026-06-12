@@ -23,15 +23,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = registerSchema.parse(body);
 
-    // Rate limit: 3 registrations per IP per hour
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const rl = await rateLimit(`register:${ip}`, 3, 3600);
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { error: "Too many registration attempts. Try again later." },
-        { status: 429, headers: { "Retry-After": String(rl.resetInSeconds) } }
-      );
-    }
+
 
     // Atomic: check uniqueness + create tenant + create user in one transaction
     const result = await db.transaction(async (tx) => {

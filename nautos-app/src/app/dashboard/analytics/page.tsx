@@ -45,7 +45,6 @@ export default function AnalyticsPage() {
         setDocsByStatus(data.docsByStatus ?? []);
       })
       .catch((err: Error) => {
-        console.error("[AnalyticsPage]", err);
         setError(err.message);
       })
       .finally(() => setLoading(false));
