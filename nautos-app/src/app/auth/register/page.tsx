@@ -102,8 +102,14 @@ export default function RegisterPage() {
       </div>
 
       {/* ── Right — form ── */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-[#0d1a2e]">
-        <div className="w-full max-w-[420px]">
+      <div className="flex-1 flex items-center justify-center px-6 py-12 relative overflow-hidden bg-[#0d1a2e]">
+        <img
+          src="/images/ship.jpg"
+          alt="Ship background"
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        />
+        <div className="absolute inset-0 bg-[#0d1a2e]/60 backdrop-blur-[2px] z-10" />
+        <div className="relative z-20 w-full max-w-[420px]">
           <h2 className="text-[#f0f4ff] text-xl font-semibold">
             Create account
           </h2>
