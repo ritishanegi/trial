@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { getJwtSecret } from "@/lib/auth/jwt-secret";
 
-const PUBLIC_PATHS = ["/", "/auth/login", "/auth/register", "/api/auth/login", "/api/auth/register", "/api/health"];
+const PUBLIC_PATHS = ["/", "/auth/login", "/auth/register", "/api/auth/login", "/api/auth/register", "/api/health", "/api/analytics"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -33,7 +33,7 @@ export async function middleware(req: NextRequest) {
   }
 
   try {
-    const secret = new TextEncoder().encode(getJwtSecret());
+    const secret = getJwtSecret();
     const { payload } = await jwtVerify(token, secret);
 
     const headers = new Headers(req.headers);
