@@ -1,0 +1,50 @@
+{
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    // ── TypeScript strictness ──────────────────────────────────────────
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ],
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      { "prefer": "type-imports", "fixStyle": "inline-type-imports" }
+    ],
+    "@typescript-eslint/no-non-null-assertion": "warn",
+
+    // ── React best practices ───────────────────────────────────────────
+    "react/self-closing-comp": "error",
+    "react/jsx-curly-brace-presence": [
+      "error",
+      { "props": "never", "children": "never" }
+    ],
+    "react/no-array-index-key": "warn",
+
+    // ── General code quality ───────────────────────────────────────────
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "prefer-const": "error",
+    "no-duplicate-imports": "error",
+    "eqeqeq": ["error", "always"],
+
+    // ── Import ordering (requires eslint-plugin-import) ────────────────
+    // Note: install with: pnpm add -D eslint-plugin-import
+    // Uncomment after installing:
+    // "import/order": [
+    //   "error",
+    //   {
+    //     "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+    //     "newlines-between": "always",
+    //     "alphabetize": { "order": "asc", "caseInsensitive": true }
+    //   }
+    // ]
+  },
+  "ignorePatterns": [
+    ".next/",
+    "node_modules/",
+    "playwright-report/",
+    "drizzle/",
+    "*.config.js",
+    "*.config.mjs"
+  ]
+}

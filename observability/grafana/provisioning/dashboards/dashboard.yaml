@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: "nautos-dashboards"
+    orgId: 1
+    type: file
+    disableDeletion: false       # Allow UI edits to persist
+    updateIntervalSeconds: 30    # Check for new/updated dashboard files every 30s
+    allowUiUpdates: true         # Allow editing in UI (changes written back to disk)
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: true   # Subdirectories become Grafana folders

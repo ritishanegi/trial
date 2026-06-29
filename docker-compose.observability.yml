@@ -1,0 +1,115 @@
+# docker-compose.observability.yml
+#
+# Observability overlay — extends the primary docker-compose.yml.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
+#
+# Services added:
+#   - Celery Flower   :5555  (Celery task monitor + Prometheus exporter)
+#   - Prometheus      :9090  (metrics collection)
+#   - Grafana         :3001  (dashboards — admin/admin on first login)
+#
+# The worker-api service already exposes /metrics via prometheus-fastapi-instrumentator.
+# See nautos-worker/app/main.py for the registration call.
+
+name: nautos-observability
+
+services:
+  # ── Celery Flower ──────────────────────────────────────────────────────────
+  # Real-time Celery task monitor with a built-in Prometheus metrics endpoint.
+  # Access UI at: http://localhost:5555
+  # Prometheus scrapes metrics at: http://flower:5555/metrics
+  flower:
+    image: mher/flower:2.0
+    restart: unless-stopped
+    command:
+      - celery
+      - --broker=${REDIS_URL:-redis://redis:6379/0}
+      - flower
+      - --port=5555
+      - --url_prefix=
+      - --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-flowerpass}
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    environment:
+      - CELERY_BROKER_URL=${REDIS_URL:-redis://redis:6379/0}
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5555/healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+
+  # ── Prometheus ─────────────────────────────────────────────────────────────
+  # Pulls metrics from:
+  #   1. nautos-worker FastAPI /metrics endpoint
+  #   2. Celery Flower /metrics endpoint
+  # Configuration: observability/prometheus.yml
+  prometheus:
+    image: prom/prometheus:v3.4.0
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle          # allows config hot-reload via POST /-/reload
+      - --web.enable-admin-api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+
+  # ── Grafana ────────────────────────────────────────────────────────────────
+  # Dashboards pre-provisioned from observability/grafana/.
+  # Default login: admin / admin (change on first login).
+  # Access at: http://localhost:3001
+  grafana:
+    image: grafana/grafana-oss:11.6.1
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      # Disable telemetry
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    name: nautos_default
+    external: true

@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nautos-worker-celery
+  labels:
+    app: nautos-worker
+    component: celery
+    version: "1.0"
+spec:
+  # Scale Celery independently from the API layer
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nautos-worker
+      component: celery
+  strategy:
+    # Recreate is safer for Celery: avoids duplicate task execution during deploys
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nautos-worker
+        component: celery
+    spec:
+      containers:
+        - name: nautos-celery
+          image: ghcr.io/your-org/nautos-worker:latest
+          imagePullPolicy: Always
+          # Override the default CMD to launch Celery instead of uvicorn
+          command:
+            - celery
+            - -A
+            - app.celery_app:celery
+            - worker
+            - --loglevel=info
+            - --concurrency=2
+            - -Q
+            - ingestion,default
+          envFrom:
+            - configMapRef:
+                name: nautos-worker-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nautos-secrets
+                  key: database-url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nautos-secrets
+                  key: redis-url
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nautos-secrets
+                  key: anthropic-api-key
+            - name: VOYAGE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nautos-secrets
+                  key: voyage-api-key
+            - name: AZURE_DI_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nautos-secrets
+                  key: azure-di-key
+          resources:
+            # OCR + embedding tasks are CPU/memory heavy
+            requests:
+              cpu: "1000m"
+              memory: "2Gi"
+            limits:
+              cpu: "4000m"
+              memory: "6Gi"
+          # Celery workers don't expose HTTP — use exec probe
+          livenessProbe:
+            exec:
+              command:
+                - celery
+                - -A
+                - app.celery_app:celery
+                - inspect
+                - ping
+                - -d
+                - celery@$HOSTNAME
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 10
+            failureThreshold: 3
+      terminationGracePeriodSeconds: 120

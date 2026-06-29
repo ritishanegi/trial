@@ -1,0 +1,67 @@
+# ruff.toml — Standalone Ruff configuration for nautos-worker
+# This extends the settings already defined in pyproject.toml [tool.ruff].
+# Ruff merges both files; settings here take precedence.
+
+target-version = "py312"
+line-length = 100
+
+# Output format for CI readability
+output-format = "grouped"
+
+[lint]
+# Extend the base rule set defined in pyproject.toml (E, F, I, N, W)
+# with additional high-value rule groups:
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "W",   # pycodestyle warnings
+    "UP",  # pyupgrade — enforce modern Python 3.12 idioms
+    "B",   # flake8-bugbear — likely bugs and design issues
+    "SIM", # flake8-simplify — simplifiable code patterns
+    "TCH", # flake8-type-checking — move type-only imports to TYPE_CHECKING blocks
+    "RUF", # ruff-specific rules
+    "C4",  # flake8-comprehensions — better list/dict/set comprehensions
+    "PTH", # flake8-use-pathlib — prefer pathlib over os.path
+    "LOG", # flake8-logging — correct logging usage
+    "G",   # flake8-logging-format — log string formatting
+]
+
+ignore = [
+    "E501",   # line-too-long — handled by the formatter
+    "B008",   # do-not-perform-function-call-in-default-argument (FastAPI Depends pattern)
+    "N818",   # exception-name-should-be-named-with-error-suffix — sometimes intentional
+    "SIM108", # ternary operator preference — sometimes explicit is clearer
+    "TCH001", # first-party imports don't need to move to TYPE_CHECKING
+    "TCH002", # third-party imports — too aggressive with psycopg/pydantic
+    "G004",   # logging-f-string — f-strings in logging are fine with lazy evaluation off
+]
+
+# Allow auto-fix for all enabled fixable rules
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables prefixed with underscore
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+_*))$"
+
+[lint.per-file-ignores]
+# Test files can use assert and don't need type annotations
+"tests/**/*.py" = ["S101", "ANN", "D"]
+# Alembic migrations are auto-generated — relax rules
+"alembic/versions/*.py" = ["E501", "I001", "N999", "UP007"]
+"alembic/env.py" = ["E402"]
+
+[lint.isort]
+known-first-party = ["app"]
+force-sort-within-sections = true
+
+[lint.pep8-naming]
+# Allow Pydantic v2 model_config and similar conventions
+classmethod-decorators = ["classmethod", "pydantic.validator", "pydantic.root_validator"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"

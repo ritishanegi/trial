@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nautos-worker-api
+  labels:
+    app: nautos-worker
+    component: api
+    version: "1.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nautos-worker
+      component: api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: nautos-worker
+        component: api
+    spec:
+      containers:
+        - name: nautos-worker-api
+          image: ghcr.io/your-org/nautos-worker:latest
+          imagePullPolicy: Always
+          # Default CMD in the Dockerfile starts uvicorn
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: nautos-worker-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nautos-secrets
+                  key: database-url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nautos-secrets
+                  key: redis-url
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nautos-secrets
+                  key: anthropic-api-key
+            - name: VOYAGE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nautos-secrets
+                  key: voyage-api-key
+            - name: AZURE_DI_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nautos-secrets
+                  key: azure-di-key
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2000m"
+              memory: "3Gi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+      terminationGracePeriodSeconds: 60

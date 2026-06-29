@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.signals import worker_init
 
 from app.config import settings
 
@@ -20,3 +21,18 @@ celery.conf.update(
 )
 
 celery.autodiscover_tasks(["app.tasks"])
+
+
+@worker_init.connect
+def init_sentry_for_celery(**kwargs: object) -> None:
+    """
+    Initialise Sentry in the Celery worker process.
+
+    The worker_init signal fires once per worker process after the worker
+    has started but before it begins consuming tasks — the ideal moment
+    to set up Sentry so that task errors are captured with full context.
+    """
+    from sentry_init import init_sentry  # noqa: PLC0415
+
+    init_sentry(runtime="celery")
+

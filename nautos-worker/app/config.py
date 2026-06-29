@@ -19,7 +19,21 @@ class Settings(BaseSettings):
     azure_di_endpoint: str = ""
     azure_di_key: str = ""
 
+    # ── Sentry ──────────────────────────────────────────────────────────────
+    sentry_dsn: str = ""
+    sentry_environment: str = "development"
+    sentry_release: str = ""
+
+    # ── Semantic Cache ───────────────────────────────────────────────────────
+    # Cosine similarity threshold for cache hits (0.0–1.0). Higher = stricter.
+    semantic_cache_similarity_threshold: float = 0.92
+    # TTL for cached answers in seconds (default: 24 hours)
+    semantic_cache_ttl: int = 86_400
+    # Max number of cached entries per tenant (LRU eviction above this limit)
+    semantic_cache_max_entries: int = 500
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
 
 settings = Settings()
+
