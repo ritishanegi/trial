@@ -47,28 +47,7 @@ _FALLBACK_ORDER = ["anthropic", "groq", "gemini"]
 
 class LLMTemporaryError(Exception):
     """Rate limit (429) or server error (5xx) — safe to retry with another provider."""
-DEFAULT_IMAGE_PROMPT = """Analyze this image thoroughly. Identify and explain:
-- What this document/diagram/image depicts
-- Key components, labels, or systems shown
-- Any critical information, warnings, or specifications visible
-- What this would typically be used for in a maritime/vessel context
-- Any maintenance, operational, or safety insights relevant to the content"""
 
-def build_gemini_messages(user_text: str, image_data=None):
-    # Auto-inject prompt if image sent with no text
-    if image_data and not user_text.strip():
-        user_text = DEFAULT_IMAGE_PROMPT
-    
-    parts = [{"text": user_text}]
-    if image_data:
-        parts.append({
-            "inline_data": {
-                "mime_type": image_data["mime_type"],
-                "data": image_data["base64"]
-            }
-        })
-    
-    return [{"role": "user", "parts": parts}]
 
 def _build_user_message(question: str, context: str, has_image: bool = False) -> str:
     """Construct the user message for the LLM.
