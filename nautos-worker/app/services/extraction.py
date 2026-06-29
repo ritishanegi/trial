@@ -78,7 +78,7 @@ class ExtractionService:
         doc_title = chunks[0].get("title", "document")
         context = self._build_context(chunks)
 
-        rows = self._call_llm_and_parse(description, context)
+        rows = self._call_llm_and_parse(description, context, document_id=document_id)
 
         if not rows:
             raise ValueError("The LLM did not find any matching rows to extract.")
@@ -94,7 +94,7 @@ class ExtractionService:
             sections.append(f"[Page {page}]\n{chunk['text']}")
         return "\n\n---\n\n".join(sections)
 
-    def _call_llm_and_parse(self, description: str, context: str) -> list[dict]:
+    def _call_llm_and_parse(self, description: str, context: str, document_id: str = "") -> list[dict]:
         """Call LLM, parse JSON. Retries once with a clarifying nudge if invalid."""
         prompt = EXTRACTION_PROMPT.format(description=description, context=context)
 
@@ -104,8 +104,13 @@ class ExtractionService:
         if parsed is not None:
             return parsed
 
-        # Retry with explicit nudge
-        logger.warning("First extraction attempt produced invalid JSON; retrying")
+        # Retry with explicit nudge — log raw output so engineers can diagnose
+        logger.warning(
+            "First extraction attempt produced invalid JSON for document %s; retrying. "
+            "Raw LLM output (first 500 chars): %.500s",
+            document_id or "unknown",
+            response,
+        )
         retry_prompt = (
             prompt
             + "\n\nIMPORTANT: Your previous response was not valid JSON. "
@@ -115,6 +120,12 @@ class ExtractionService:
         response = self.llm.get_answer(question=retry_prompt, context="")
         parsed = self._try_parse_json(response)
         if parsed is None:
+            logger.error(
+                "Second extraction attempt also produced invalid JSON for document %s. "
+                "Raw LLM output (first 500 chars): %.500s",
+                document_id or "unknown",
+                response,
+            )
             raise ValueError(
                 "Could not extract structured data. The LLM did not return valid JSON. "
                 "Try rephrasing what you want extracted, e.g. 'parts list with part number, "
